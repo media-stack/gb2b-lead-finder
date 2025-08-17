@@ -1,7 +1,5 @@
-streamlit==1.36.0
-pandas==2.2.2
-requests==2.32.3
-beautifulsoup4==4.12.3
-xlsxwriter==3.2.0     # use this for Excel export (faster/lighter)
-# tldextract==5.1.2   # optional; keep commented out unless you really need it
-# openpyxl==3.1.5     # not needed if you export with xlsxwriter
+streamlit>=1.36,<2
+pandas>=2.2.3
+requests>=2.32
+beautifulsoup4>=4.12
+xlsxwriter>=3.2
