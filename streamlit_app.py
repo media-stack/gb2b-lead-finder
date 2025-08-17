@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 # GB2B Lead Finder - ESG Advisory Streamlit app (clean copy)
 
+# (imports — you may already have these; don't duplicate)
+import io, os, requests, streamlit as st
+
+# Make the app able to pull a CSV from a URL (Streamlit secret preferred)
+AUTO_CSV_URL = st.secrets.get("AUTO_CSV_URL", os.getenv("AUTO_CSV_URL", ""))
 import os, re, time, io
 import pandas as pd
 import requests
