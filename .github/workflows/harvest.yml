@@ -28,13 +28,14 @@ jobs:
           python -m pip install requests pandas beautifulsoup4 xlsxwriter
 
       - name: Run harvester
-        env:
-          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
-          BING_API_KEY: ${{ secrets.BING_API_KEY }}
-          BING_ENDPOINT: "https://api.bing.microsoft.com/v7.0/search"
-          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
-        run: |
-          python lead_harvester.py
+        - name: Run harvester
+  env:
+    SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}     # optional
+    BING_API_KEY: ${{ secrets.BING_API_KEY }}   # optional
+    BING_ENDPOINT: "https://api.bing.microsoft.com/v7.0/search"
+    NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}     # <-- add this line
+  run: |
+    python lead_harvester.py
 
       - name: Commit CSV/XLSX back to repo
         run: |
