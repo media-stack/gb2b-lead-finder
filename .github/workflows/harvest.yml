@@ -15,6 +15,13 @@ jobs:
     concurrency:
       group: gb2b-harvest
       cancel-in-progress: true
+    # Make secrets visible to all steps (so the "Check secrets" step works)
+    env:
+      SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+      BING_API_KEY: ${{ secrets.BING_API_KEY }}
+      NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+      BING_ENDPOINT: "https://api.bing.microsoft.com/v7.0/search"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -39,21 +46,19 @@ jobs:
           ls -la
 
       - name: Run harvester
-        env:
-          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}     # optional
-          BING_API_KEY: ${{ secrets.BING_API_KEY }}   # optional
-          BING_ENDPOINT: "https://api.bing.microsoft.com/v7.0/search"
-          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}     # optional
         run: |
           python lead_harvester.py
+        continue-on-error: true   # keep job alive even if script errors
 
       - name: Verify outputs after run
+        if: always()
         run: |
           ls -la
           [ -f gb2b_leads.csv ] && echo "CSV present ✅" || echo "CSV missing ❌"
 
       # Create a minimal CSV if the harvester didn't write one (debug safety)
       - name: Ensure CSV exists (debug)
+        if: always()
         run: |
           if [ ! -f gb2b_leads.csv ]; then
             echo 'title,url,snippet,source,published_at,market,industry,topic' > gb2b_leads.csv
@@ -61,6 +66,7 @@ jobs:
           fi
 
       - name: Commit CSV/XLSX back to repo
+        if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
