@@ -837,3 +837,121 @@ def main():
 
 if __name__ == "__main__":
     main()
+import requests
+import os
+
+APOLLO_API_KEY = os.getenv("APOLLO_API_KEY")
+
+def search_apollo_leads(query="sustainability manager", page=1):
+    """Search Apollo.io for ESG-related contacts"""
+    url = "https://api.apollo.io/v1/mixed_people/search"
+    headers = {"Cache-Control": "no-cache", "Content-Type": "application/json"}
+    payload = {
+        "api_key": APOLLO_API_KEY,
+        "q_keywords": query,
+        "page": page,
+        "person_titles": ["Sustainability Manager", "Head of ESG", "Chief Sustainability Officer"],
+        "person_locations": ["Global"]
+    }
+
+    r = requests.post(url, headers=headers, json=payload)
+    r.raise_for_status()
+    data = r.json()
+
+    leads = []
+    for person in data.get("people", []):
+        leads.append({
+            "name": person.get("name"),
+            "title": person.get("title"),
+            "company": person.get("organization", {}).get("name"),
+            "email": person.get("email"),
+            "linkedin": person.get("linkedin_url"),
+        })
+    return leads
+LUSHA_API_KEY = os.getenv("LUSHA_API_KEY")
+
+def enrich_lusha_by_domain(domain="example.com"):
+    """Get company enrichment details (emails, phones) from Lusha"""
+    url = f"https://api.lusha.co/enrichment/v1/company?domain={domain}"
+    headers = {
+        "Authorization": f"Bearer {LUSHA_API_KEY}"
+    }
+
+    r = requests.get(url, headers=headers)
+    r.raise_for_status()
+    data = r.json()
+
+    company_info = {
+        "company": data.get("company_name"),
+        "industry": data.get("industry"),
+        "phone": data.get("phone_numbers"),
+        "emails": data.get("emails"),
+        "website": data.get("website"),
+    }
+    return company_info
+import pandas as pd
+
+def export_combined_leads():
+    apollo_leads = search_apollo_leads("ESG Director")
+    lusha_info = enrich_lusha_by_domain("deloitte.com")
+
+    df = pd.DataFrame(apollo_leads)
+    df["lusha_phone"] = str(lusha_info.get("phone"))
+    df["lusha_emails"] = str(lusha_info.get("emails"))
+
+    df.to_csv("gb2b_leads.csv", index=False)
+    print(f"[OK] Wrote {len(df)} leads with Lusha enrichment to gb2b_leads.csv")
+#!/usr/bin/env python3
+import os, io, time, re, requests, pandas as pd
+
+# --- Keep your existing imports, COMPLIANCE_KEYWORDS, MARKETS, INDUSTRIES, BUYER_PERSONAS here ---
+
+    leads = []
+    for title in job_titles:
+        for industry in industries:
+            try:
+                params = {
+                    "q": "targetingFacet",
+                    "facet": "jobTitle",
+                    "facetValues[0]": title,
+                    "facetValues[1]": industry,
+                }
+                r = requests.get(url, headers=headers, params=params, timeout=20)
+                if r.status_code == 200:
+                    data = r.json()
+                    leads.append({
+                        "source": "linkedin",
+                        "job_title": title,
+                        "industry": industry,
+                        "raw": data
+                    })
+                    print(f"[OK] Pulled LinkedIn leads for {title} in {industry}")
+                else:
+                    print(f"[ERROR] LinkedIn API {r.status_code}: {r.text[:200]}")
+            except Exception as e:
+                print(f"[ERROR] LinkedIn fetch failed: {e}")
+            time.sleep(1)
+
+    return leads
+
+# ========================================
+# Integrate with your existing exporter
+# ========================================
+
+def export_combined_leads():
+    # Keep your Apollo, Lusha, SerpAPI, NewsAPI calls here
+    apollo_leads = []   # <- replace with your Apollo fetch function
+    lusha_leads = []    # <- replace with your Lusha fetch function
+    serpapi_leads = []  # <- replace with your SerpAPI fetch function
+    newsapi_leads = []  # <- replace with your NewsAPI fetch function
+
+    linkedin_leads = fetch_linkedin_leads(
+        job_titles=BUYER_PERSONAS,   # keep your buyer persona list
+        industries=INDUSTRIES,      # keep your industries list
+        limit=50
+    )
+
+    all_leads = apollo_leads + lusha_leads + serpapi_leads + newsapi_leads + linkedin_leads
+    df = pd.DataFrame(all_leads)
+    df.to_csv("gb2b_leads.csv", index=False)
+    print(f"[OK] Wrote {len(df)} rows to gb2b_leads.csv")
