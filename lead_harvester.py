@@ -62,3 +62,4 @@ def score_row(text, market=None, industry=None, published_at=None):
         score += 1
     return score, hits
 
+df_out.to_csv("gb2b_leads.csv", index=False, encoding="utf-8")
