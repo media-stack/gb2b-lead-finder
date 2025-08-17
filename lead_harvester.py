@@ -175,3 +175,5 @@ def harvest_all():
 
 if __name__ == "__main__":
     harvest_all()
+leads = fetch_apollo_leads(query="sustainability manager banking")
+export_leads_to_csv(leads)
