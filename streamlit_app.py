@@ -263,3 +263,19 @@ def score_row(text, market=None, industry=None, published_at=None):
         score += 1
     return score, hits
 
+import streamlit as st
+import pandas as pd
+
+st.title("GB2B Lead Finder")
+
+# --- Load your auto-generated leads CSV ---
+@st.cache_data
+def load_leads():
+    return pd.read_csv("gb2b_leads.csv")
+
+try:
+    leads_df = load_leads()
+    st.success(f"Loaded {len(leads_df)} leads")
+    st.dataframe(leads_df)
+except FileNotFoundError:
+    st.warning("No leads CSV found yet. Please run the harvester workflow.")
